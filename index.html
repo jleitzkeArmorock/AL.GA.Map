@@ -45,41 +45,47 @@
                           '#FFEDA0';
   }
 
-  // Fetch your GeoJSON and create the clustered layer
-  fetch('SweetHome1.geojson')
-    .then(response => response.json())
-    .then(data => {
-      const markers = L.markerClusterGroup();
+  // Marker cluster group
+  const markers = L.markerClusterGroup();
 
-      const geojsonLayer = L.geoJSON(data, {
-        pointToLayer: function (feature, latlng) {
-          const pop = feature.properties["Population Served"] || 0;
-          return L.circleMarker(latlng, {
-            radius: 6,
-            fillColor: getColor(pop),
-            color: "#333",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: function (feature, layer) {
-          if (feature.properties) {
-            let popupContent = `
-              <strong>${feature.properties["Water System Name"]}</strong><br>
-              Population Served: ${feature.properties["Population Served"] || "N/A"}<br>
-              County: ${feature.properties["County(s) Served"] || "N/A"}<br>
-              City: ${feature.properties["City(s) Served"] || "N/A"}
-            `;
-            layer.bindPopup(popupContent);
+  // Function to fetch and add GeoJSON
+  function addGeoJsonToMap(url) {
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const geojsonLayer = L.geoJSON(data, {
+          pointToLayer: function (feature, latlng) {
+            const pop = feature.properties["Population Served"] || 0;
+            return L.circleMarker(latlng, {
+              radius: 6,
+              fillColor: getColor(pop),
+              color: "#333",
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.8
+            });
+          },
+          onEachFeature: function (feature, layer) {
+            if (feature.properties) {
+              const popupContent = `
+                <strong>${feature.properties["Water System Name"]}</strong><br>
+                Population Served: ${feature.properties["Population Served"] || "N/A"}<br>
+                City: ${feature.properties["City"] || "N/A"}
+              `;
+              layer.bindPopup(popupContent);
+            }
           }
-        }
-      });
+        });
 
-      // Add the geojsonLayer to the cluster group, then add to map
-      markers.addLayer(geojsonLayer);
-      map.addLayer(markers);
-    });
+        markers.addLayer(geojsonLayer);
+        map.addLayer(markers);
+      });
+  }
+
+  // Call it for multiple files
+  addGeoJsonToMap('Geo.A.M.geojson');
+  addGeoJsonToMap('Geo.M.Z.geojson');
+  addGeoJsonToMap('SweetHome1.geojson');
 </script>
 
 </body>
